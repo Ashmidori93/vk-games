@@ -26,6 +26,22 @@
     });
   }
 
+  /* ---------- отладка: ?ad_debug=1 выводит запросы к площадке прямо на экран ---------- */
+  const DEBUG = q.get('ad_debug') === '1';
+  let debugBox = null;
+  function debug(text) {
+    if (!DEBUG) return;
+    if (!debugBox) {
+      debugBox = document.createElement('pre');
+      debugBox.style.cssText = 'position:fixed;left:4px;bottom:4px;z-index:99999;max-width:96vw;max-height:40vh;overflow:auto;'
+        + 'margin:0;padding:6px;font:11px/1.3 monospace;color:#0f0;background:rgba(0,0,0,.8);white-space:pre-wrap;pointer-events:none;';
+      (document.body || document.documentElement).appendChild(debugBox);
+    }
+    const t = new Date().toTimeString().slice(0, 8);
+    debugBox.textContent = (debugBox.textContent + t + ' ' + text + '\n').split('\n').slice(-15).join('\n');
+  }
+  const short = (v) => { try { return JSON.stringify(v).slice(0, 200); } catch (e) { return String(v); } };
+
   /* ---------- события паузы ---------- */
   const listeners = {};
   function on(name, fn) { (listeners[name] = listeners[name] || []).push(fn); }
@@ -63,25 +79,46 @@
   /* ---------- ВКонтакте ---------- */
   async function initVk() {
     if (!window.vkBridge) await loadScript(VK_BRIDGE_SRC);
-    const bridge = window.vkBridge;
+    const vk = window.vkBridge;
+    // Все вызовы, кроме хранилища, в режиме отладки пишутся на экран вместе с ответом VK
+    const bridge = {
+      send(method, params) {
+        const logged = method !== 'VKWebAppStorageGet' && method !== 'VKWebAppStorageSet';
+        if (logged) debug('→ ' + method + ' ' + short(params || {}));
+        return vk.send(method, params).then(
+          (r) => { if (logged) debug('← ' + method + ' ' + short(r)); return r; },
+          (e) => { debug('✕ ' + method + ' ' + short(e)); throw e; });
+      },
+      subscribe: (fn) => vk.subscribe(fn),
+    };
     await bridge.send('VKWebAppInit');
+    debug('платформа ' + (q.get('vk_platform') || '?') + ', клиент ' + (q.get('vk_client') || 'vk'));
 
-    bridge.subscribe((e) => {
+    vk.subscribe((e) => {
       const type = e && e.detail && e.detail.type;
       if (type === 'VKWebAppViewHide') emit('game_api_pause');
       if (type === 'VKWebAppViewRestore') emit('game_api_resume');
     });
 
-    // Рекламу за награду VK советует подгружать заранее
-    const preload = () => bridge.send('VKWebAppCheckNativeAds', { ad_format: 'reward' }).catch(() => {});
-    preload();
+    // VK советует подгружать рекламу заранее и повторять проверку по таймеру,
+    // пока материалы не придут: загрузка может сорваться из-за сети
+    const ready = { reward: false, interstitial: false };
+    const preload = (format) => bridge.send('VKWebAppCheckNativeAds', { ad_format: format })
+      .then((r) => { ready[format] = !!(r && r.result); }, () => { ready[format] = false; });
+    preload('reward');
+    preload('interstitial');
+    setInterval(() => {
+      if (!ready.reward) preload('reward');
+      if (!ready.interstitial) preload('interstitial');
+    }, 30000);
 
     const showAd = (format) => bridge.send('VKWebAppShowNativeAds', { ad_format: format })
       .then((r) => {
-        if (format === 'reward') preload();
+        ready[format] = false;
+        preload(format);
         if (!r || !r.result) return 'error';
         return format === 'reward' ? 'rewarded' : 'closed';
-      });
+      }, (e) => { ready[format] = false; preload(format); throw e; });
 
     const storageGet = (keys) => bridge.send('VKWebAppStorageGet', { keys })
       .then((r) => {
