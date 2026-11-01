@@ -118,7 +118,13 @@
         preload(format);
         if (!r || !r.result) return 'error';
         return format === 'reward' ? 'rewarded' : 'closed';
-      }, (e) => { ready[format] = false; preload(format); throw e; });
+      }, (e) => {
+        ready[format] = false;
+        preload(format);
+        // Код 4 «User denied» — игрок сам закрыл рекламу: без награды, но и без «реклама недоступна»
+        if (e && e.error_data && e.error_data.error_code === 4) return 'closed';
+        throw e;
+      });
 
     const storageGet = (keys) => bridge.send('VKWebAppStorageGet', { keys })
       .then((r) => {
