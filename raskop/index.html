@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>Раскоп</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Площадка (VK / OK) определяется по адресу запуска, см. platform.js -->
+  <script src="platform.js"></script>
+</head>
+<body>
+<div id="app">
+  <div id="hud">
+    <div class="chip" id="coins-chip"><svg viewBox="0 0 24 24" class="ic"><circle cx="12" cy="12" r="10" fill="#ffd24a" stroke="#a8740a" stroke-width="2"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="#c89010" stroke-width="2"/></svg><b id="coins">0</b></div>
+    <div class="chip" id="depth-chip"><span id="depth">0 м</span><small id="biome"></small></div>
+    <button class="sq" id="lb-btn" hidden aria-label="rating"><svg viewBox="0 0 24 24"><path d="M7 4h10v4a5 5 0 0 1-10 0zM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8M10 17h4" fill="none" stroke="#ffd24a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button class="sq" id="settings-btn" aria-label="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="none" stroke="#cfd6ee" stroke-width="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" stroke="#cfd6ee" stroke-width="2" stroke-linecap="round"/></svg></button>
+  </div>
+  <div id="stage">
+    <canvas id="cv" width="360" height="440"></canvas>
+    <div id="hint"></div>
+    <div id="toast"></div>
+  </div>
+  <div id="bars">
+    <div class="bar-row"><svg viewBox="0 0 24 24" class="ic"><path d="M13 2L5 14h6l-1 8 9-13h-6z" fill="#7be0a0" stroke="#2c8a55" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      <div class="bar" id="ebar"><i id="efill"></i><span id="etext"></span></div></div>
+    <div class="bar-row"><svg viewBox="0 0 24 24" class="ic"><path d="M6 9h12l1 11H5zM9 9V7a3 3 0 0 1 6 0v2" fill="#b98a4a" stroke="#6b4a1d" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      <div class="bar" id="cbar"><i id="cfill"></i><span id="ctext"></span></div></div>
+  </div>
+  <div id="actions">
+    <button class="act" id="btn-dyn"><span id="dyn-n">0</span><small id="dyn-l"></small></button>
+    <button class="act" id="btn-scroll"><span id="scroll-n">0</span><small id="scroll-l"></small></button>
+    <button class="act main" id="btn-shop"></button>
+  </div>
+</div>
+
+<div class="ov" id="shop" hidden><div class="card wide">
+  <div class="card-head"><h2 id="shop-title"></h2><button class="x" id="shop-close">×</button></div>
+  <div class="tabs"><button class="tab on" data-stab="up"></button><button class="tab" data-stab="sup"></button><button class="tab" data-stab="col"></button></div>
+  <div id="shop-list"></div>
+</div></div>
+
+<div class="ov" id="sale" hidden><div class="card">
+  <h2 id="sale-title"></h2>
+  <div id="sale-items"></div>
+  <div id="sale-gain"></div>
+  <button class="btn ad" id="sale-x2"><span id="sale-x2-t"></span></button>
+  <button class="btn" id="sale-shop"></button>
+  <button class="btn ghost" id="sale-ok"></button>
+</div></div>
+
+<div class="ov" id="stuck" hidden><div class="card">
+  <h2 id="stuck-title"></h2><p id="stuck-text"></p>
+  <button class="btn ad" id="stuck-ad"></button>
+  <button class="btn" id="stuck-scroll"></button>
+  <button class="btn ghost" id="stuck-evac"></button>
+</div></div>
+
+<div class="ov" id="settings" hidden><div class="card">
+  <h2 id="set-title"></h2>
+  <div class="row"><span id="set-sound"></span><button class="toggle" data-set="sound"></button></div>
+  <div class="row"><span id="set-fx"></span><button class="toggle" data-set="effects"></button></div>
+  <div class="row"><span id="set-lang"></span><button class="toggle" data-set="lang"></button></div>
+  <button class="btn danger" id="reset"></button>
+  <button class="btn ghost" id="set-close"></button>
+</div></div>
+
+<div class="ov" id="lb" hidden><div class="card">
+  <h2 id="lb-title"></h2><p id="lb-sub"></p>
+  <div id="lb-list"></div>
+  <button class="btn" id="lb-auth" hidden></button>
+  <button class="btn ghost" id="lb-close"></button>
+</div></div>
+
+<div class="ov" id="confirm" hidden><div class="card">
+  <p id="confirm-text"></p>
+  <button class="btn danger" id="confirm-yes"></button>
+  <button class="btn ghost" id="confirm-no"></button>
+</div></div>
+
+<script src="mine.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
