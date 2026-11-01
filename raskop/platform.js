@@ -42,6 +42,23 @@
   }
   const short = (v) => { try { return JSON.stringify(v).slice(0, 200); } catch (e) { return String(v); } };
 
+  /* ---------- поддержка: VK требует канал связи прямо в игре ---------- */
+  // Кнопка «Поддержка» встаёт в окно настроек перед кнопкой «Закрыть» (у игр разная разметка, ищем оба варианта)
+  const SUPPORT_URL = 'https://vk.com/club242834777';
+  function addSupportLink(lang) {
+    const close = document.querySelector('#set-close, #settings-close');
+    if (!close || document.getElementById('support-link')) return;
+    const a = document.createElement('a');
+    a.id = 'support-link';
+    a.href = SUPPORT_URL;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.className = close.className.replace(/\bprimary\b/, '').trim();
+    a.style.cssText = 'display:block;text-align:center;text-decoration:none;box-sizing:border-box;';
+    a.textContent = /^(ru|uk|be|kk|uz)/.test(lang || 'ru') ? 'Поддержка и новости' : 'Support & news';
+    close.parentNode.insertBefore(a, close);
+  }
+
   /* ---------- события паузы ---------- */
   const listeners = {};
   function on(name, fn) { (listeners[name] = listeners[name] || []).push(fn); }
@@ -93,6 +110,7 @@
     };
     await bridge.send('VKWebAppInit');
     debug('платформа ' + (q.get('vk_platform') || '?') + ', клиент ' + (q.get('vk_client') || 'vk'));
+    addSupportLink(q.get('vk_language'));
 
     vk.subscribe((e) => {
       const type = e && e.detail && e.detail.type;
